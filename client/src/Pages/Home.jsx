@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import IssueForm from '../Components/IssueForm';
 import IssueFeed from '../Components/IssueFeed';
@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const center = [37.774546, -122.433523];
+const defaultCenter = [9.9252, 78.1198];
 
 function MapUpdater({ center }) {
   const map = useMap();
@@ -26,6 +26,7 @@ function MapUpdater({ center }) {
 
 export default function Home() {
   const [issues, setIssues] = useState([]);
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [user, setUser] = useState({ name: 'Swetha P', followers: 124, following: 87 });
 
   useEffect(() => {
@@ -35,7 +36,8 @@ export default function Home() {
         return res.json();
       })
       .then(data => {
-        setIssues(Array.isArray(data) ? data : []);
+        const arr = data?.data?.issues || [];
+        setIssues(arr);
       })
       .catch(err => {
         console.error('Error fetching issues:', err);
@@ -57,7 +59,7 @@ export default function Home() {
           <div className="lg:col-span-2">
             <div className="rounded-xl overflow-hidden shadow-lg">
               <MapContainer 
-                center={center} 
+                center={mapCenter} 
                 zoom={13} 
                 style={{ height: '400px', width: '100%' }}
                 scrollWheelZoom={true}
@@ -66,7 +68,7 @@ export default function Home() {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <MapUpdater center={center} />
+                <MapUpdater center={mapCenter} />
                 
                 {issues
                   .filter(issue => issue.location && issue.location.lat && issue.location.lng)
@@ -91,6 +93,7 @@ export default function Home() {
             <div className="mt-6 bg-white rounded-xl p-6 shadow-lg">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Report an Issue</h2>
               <IssueForm />
+              <div className="mt-2 text-sm text-gray-500">Allow location in your browser; the map will center to your current area when you use it in the form.</div>
             </div>
           </div>
 

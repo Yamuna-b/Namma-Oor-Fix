@@ -21,68 +21,54 @@ class ErrorBoundary extends React.Component {
 }
 
 export default function IssueFeed() {
-  const [clusters, setClusters] = useState([]);
+  const [issues, setIssues] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    axios
-      .get('http://localhost:5000/issues/clustered')
+  const fetchPage = (p) => {
+    return axios.get(`http://localhost:5000/feed/trending?page=${p}&limit=12`)
       .then(res => {
         if (res.data.status === 'success') {
-          setClusters(res.data.data?.clusters || []);
-        } else {
-          setClusters([]);
+          const newItems = res.data.data.issues || [];
+          setIssues(prev => [...prev, ...newItems]);
+          const total = res.data.data.total || 0;
+          const limit = res.data.data.limit || 12;
+          const loaded = (p) * limit;
+          setHasMore(loaded < total);
         }
       })
-      .catch(err => {
-        console.error('Error fetching clustered issues:', err);
-        setClusters([]);
+      .catch(() => setHasMore(false));
+  };
+
+  useEffect(() => { fetchPage(1); }, []);
+
+  useEffect(() => {
+    const sentinel = document.getElementById('feed-sentinel');
+    if (!sentinel) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && hasMore) {
+          const next = page + 1;
+          setPage(next);
+          fetchPage(next);
+        }
       });
-  }, []);
+    }, { rootMargin: '200px' });
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, [page, hasMore]);
 
   return (
     <div className="py-8">
-      <h2 className="text-2xl font-extrabold mb-8 text-center text-red-600">🧭 Issues by Location Cluster</h2>
-      {clusters.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {clusters.map((cluster, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow border border-red-100">
-              <div className="flex items-center mb-4">
-                <div className="bg-gradient-to-br from-red-500 to-yellow-400 h-12 w-12 rounded-full flex items-center justify-center text-white text-lg font-bold mr-3">
-                  {idx + 1}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-red-600">Cluster {idx + 1}</h3>
-                  <p className="text-sm text-gray-500">
-                    Centroid: <span className="font-mono">{cluster.centroid.lat.toFixed(4)}, {cluster.centroid.lng.toFixed(4)}</span>
-                  </p>
-                </div>
-              </div>
-              <div className="mb-2">
-                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
-                  {cluster.issues.length} issues
-                </span>
-              </div>
-              <div className="space-y-4">
-                {cluster.issues.length > 0 ? (
-                  cluster.issues.map(issue =>
-                    issue ? (
-                      <ErrorBoundary key={issue._id}>
-                        <IssueCard issue={issue} />
-                      </ErrorBoundary>
-                    ) : null
-                  )
-                ) : (
-                  <div className="text-gray-400 text-sm">No issues in this cluster.</div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 bg-yellow-50 rounded-xl text-lg text-gray-600">
-          No clustered issues found.
-        </div>
-      )}
+      <h2 className="text-2xl font-extrabold mb-6 text-center text-red-600">🔥 Trending Issues</h2>
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {issues.map(issue => (
+          <ErrorBoundary key={issue._id}>
+            <IssueCard issue={issue} />
+          </ErrorBoundary>
+        ))}
+      </div>
+      <div id="feed-sentinel" className="h-8"></div>
     </div>
   );
 }

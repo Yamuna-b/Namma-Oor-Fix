@@ -1,0 +1,12 @@
+Dataset_Name,Filename,Records,Description
+Comprehensive Location Lookup (MAIN),madurai_comprehensive_location_lookup_SAFE.csv,100,Complete ward to zone to officer mapping with infrastructure - ALL OFFICER NAMES ARE DUMMY
+Zone-Ward Mapping,madurai_zone_ward_mapping_SAFE.csv,100,100 wards mapped to 5 zones with dummy chairperson names
+Ward-Zone-Councillor Complete,madurai_ward_zone_councillor_complete_SAFE.csv,100,"Ward details with dummy councillor names, real addresses, party info"
+Streets Complete,madurai_streets_complete_SAFE.csv,129,Complete list of street names (no privacy issues)
+Sewerage Pumping Stations,madurai_sewerage_pumping_stations_SAFE.csv,14,Zone-wise sewerage infrastructure (no officer names)
+Sewerage Infrastructure,madurai_sewerage_infrastructure_SAFE.csv,2,Drainage system lengths (no officer names)
+Water Supply Schemes,madurai_water_supply_schemes_SAFE.csv,3,Water schemes with capacities (no officer names)
+Water Pumping Stations,madurai_water_pumping_stations_SAFE.csv,7,Water pumping stations (no officer names)
+Water Infrastructure,madurai_water_infrastructure_SAFE.csv,5,Water infrastructure details (no officer names)
+Water Connections,madurai_water_connections_SAFE.csv,3,Water connection statistics (no officer names)
+Street Lights Zone-wise,madurai_street_lights_zone_wise_SAFE.csv,5,Zone-wise street lights data (no officer names)

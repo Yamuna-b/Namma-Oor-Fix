@@ -28,7 +28,30 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: 50
   },
-  // ... other fields
+  role: {
+    type: String,
+    enum: ['admin', 'official', 'user'],
+    default: 'user'
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  department: {
+    type: String,
+    enum: [
+      'EB',
+      'Municipal Corporation',
+      'PWD',
+      'Water Supply',
+      'Health',
+      'Urban Planning',
+      'Education',
+      'Transport',
+      null
+    ],
+    default: null
+  },
 }, {
   timestamps: true
 });
@@ -39,9 +62,9 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Add the correctPassword method
-userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+// Add the correctPassword method (compare against stored hash)
+userSchema.methods.correctPassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);

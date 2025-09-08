@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function IssueForm() {
@@ -7,17 +7,34 @@ export default function IssueForm() {
     description: '',
     category: '',
     wardNumber: '',
+    zoneNumber: '',
     location: { lat: '', lng: '', address: '' },
+    streetName: '',
+    landmark: '',
+    fullAddress: '',
+    pincode: '',
+    images: [],
+    videos: []
   });
 
   const [address, setAddress] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [wards, setWards] = useState([]);
 
   // Handle generic form changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    fetch('http://localhost:5000/wards')
+      .then(r => r.json())
+      .then(d => {
+        if (d.status === 'success') setWards(d.data.wards || []);
+      })
+      .catch(() => setWards([]));
+  }, []);
 
   // Fetch suggestions from Nominatim
   const handleAddressChange = async (e) => {
@@ -56,6 +73,43 @@ export default function IssueForm() {
     setSuggestions([]);
   };
 
+  // Use current location
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        const display = data.display_name || `${latitude}, ${longitude}`;
+        setAddress(display);
+        setForm(prev => ({
+          ...prev,
+          location: { lat: latitude, lng: longitude, address: display },
+          fullAddress: display,
+          pincode: (data.address && (data.address.postcode || data.address.pincode)) || ''
+        }));
+      } catch (e) {
+        setForm(prev => ({ ...prev, location: { lat: latitude, lng: longitude, address: `${latitude}, ${longitude}` } }));
+      }
+    }, () => alert('Unable to retrieve your location'));
+  };
+
+  // Handle media
+  const handleMedia = async (e, key) => {
+    const files = Array.from(e.target.files || []);
+    const readers = files.map(file => new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    }));
+    const dataUrls = await Promise.all(readers);
+    setForm(prev => ({ ...prev, [key]: [...(prev[key] || []), ...dataUrls] }));
+  };
+
   // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,7 +134,14 @@ export default function IssueForm() {
         description: '',
         category: '',
         wardNumber: '',
+        zoneNumber: '',
         location: { lat: '', lng: '', address: '' },
+        streetName: '',
+        landmark: '',
+        fullAddress: '',
+        pincode: '',
+        images: [],
+        videos: []
       });
       setAddress('');
     } catch (error) {
@@ -151,19 +212,39 @@ export default function IssueForm() {
         </select>
       </div>
 
-      {/* Ward Number */}
+      {/* Ward / Zone */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Ward Number
         </label>
-        <input
-          name="wardNumber"
-          value={form.wardNumber}
-          onChange={handleChange}
-          placeholder="e.g., Ward 5"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          required
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <select
+            name="wardNumber"
+            value={form.wardNumber}
+            onChange={handleChange}
+            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            required
+          >
+            <option value="">Select Ward</option>
+            {[...new Set(wards.map(w => w.wardNumber))].map((ward, i) => (
+              <option key={i} value={ward}>{ward}</option>
+            ))}
+          </select>
+          <select
+            name="zoneNumber"
+            value={form.zoneNumber}
+            onChange={handleChange}
+            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            required
+          >
+            <option value="">Select Zone</option>
+            {[...new Set(wards
+              .filter(w => !form.wardNumber || w.wardNumber === form.wardNumber)
+              .map(w => w.zoneNumber))].map((zone, i) => (
+                <option key={i} value={zone}>{zone}</option>
+              ))}
+          </select>
+        </div>
       </div>
 
       {/* Location */}
@@ -178,6 +259,7 @@ export default function IssueForm() {
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
           required
         />
+        <button type="button" onClick={useCurrentLocation} className="mt-2 text-sm text-blue-600">Use Current Location</button>
         <p className="text-xs text-gray-500 mt-1">
           Start typing and select from suggestions
         </p>
@@ -195,6 +277,28 @@ export default function IssueForm() {
             ))}
           </ul>
         )}
+      </div>
+
+      {/* Address Details */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input name="streetName" value={form.streetName} onChange={handleChange} placeholder="Street/Road Name" className="p-3 border border-gray-300 rounded-lg" />
+        <input name="landmark" value={form.landmark} onChange={handleChange} placeholder="Landmark (optional)" className="p-3 border border-gray-300 rounded-lg" />
+        <input name="fullAddress" value={form.fullAddress} onChange={handleChange} placeholder="Full Address (optional)" className="p-3 border border-gray-300 rounded-lg" />
+        <input name="pincode" value={form.pincode} onChange={handleChange} placeholder="Pincode" className="p-3 border border-gray-300 rounded-lg" />
+      </div>
+
+      {/* Severity removed from user submission. Officials can set from their actions. */}
+
+      {/* Media Upload */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Images</label>
+          <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handleMedia(e, 'images')} className="w-full" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Videos</label>
+          <input type="file" accept="video/*" capture="environment" multiple onChange={(e) => handleMedia(e, 'videos')} className="w-full" />
+        </div>
       </div>
 
       {/* Submit */}
