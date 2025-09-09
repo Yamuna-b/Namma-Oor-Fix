@@ -12,3 +12,4 @@ wardSchema.index({ city: 1, wardNumber: 1, zoneNumber: 1 }, { unique: true });
 module.exports = mongoose.model('Ward', wardSchema);
 
 
+
