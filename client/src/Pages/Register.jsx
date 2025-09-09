@@ -13,15 +13,12 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError('');
   };
 
@@ -43,24 +40,20 @@ export default function Register() {
     }
 
     try {
-      // Send registration request to backend (without /api prefix)
       const response = await axios.post('http://localhost:5000/auth/register', {
         username: formData.username,
         email: formData.email,
         password: formData.password,
         name: formData.name || formData.username
       });
-      
+
       if (response.data.status === 'success') {
-        // Save token and user data
         login(response.data.data.user, response.data.token);
-        
-        // Redirect to home page
         navigate('/home');
       }
     } catch (err) {
       console.error('Registration error:', err);
-      
+
       if (err.code === 'ERR_NETWORK') {
         setError('Cannot connect to the server. Please make sure the backend is running.');
       } else if (err.response?.status === 404) {
@@ -76,98 +69,90 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-500 to-yellow-400 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="py-8 px-8 bg-red-600">
-          <h2 className="text-center text-3xl font-extrabold text-white">
-            Create your account
-          </h2>
-        </div>
-        <form className="py-8 px-8" onSubmit={handleSubmit}>
+    <div className="min-h-screen w-screen bg-gradient-to-br from-red-500 to-yellow-400 flex items-center justify-center">
+      <div className="w-full max-w-sm rounded-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-lg p-6 sm:p-6">
+        <h2 className="text-center text-2xl font-bold text-white mb-6">
+          Create your account
+        </h2>
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            <div className="bg-red-500/20 border border-red-400 text-red-200 px-3 py-2 rounded text-sm">
               {error}
             </div>
           )}
-          
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <input
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-t-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <input
-                name="email"
-                type="email"
-                required
-                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <input
-                name="name"
-                type="text"
-                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name (optional)"
-                value={formData.name}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <input
-                name="password"
-                type="password"
-                required
-                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Password (min. 6 characters)"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <input
-                name="confirmPassword"
-                type="password"
-                required
-                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-          </div>
 
-          <div className="mt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          <input
+            name="username"
+            type="text"
+            required
+            placeholder="Username"
+            className="w-full px-3 py-2 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:text-sm"
+            value={formData.username}
+            onChange={handleChange}
+            disabled={loading}
+          />
+
+          <input
+            name="email"
+            type="email"
+            required
+            placeholder="Email address"
+            className="w-full px-3 py-2 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:text-sm"
+            value={formData.email}
+            onChange={handleChange}
+            disabled={loading}
+          />
+
+          <input
+            name="name"
+            type="text"
+            placeholder="Full Name (optional)"
+            className="w-full px-3 py-2 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:text-sm"
+            value={formData.name}
+            onChange={handleChange}
+            disabled={loading}
+          />
+
+          <input
+            name="password"
+            type="password"
+            required
+            placeholder="Password (min. 6 characters)"
+            className="w-full px-3 py-2 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:text-sm"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={loading}
+          />
+
+          <input
+            name="confirmPassword"
+            type="password"
+            required
+            placeholder="Confirm Password"
+            className="w-full px-3 py-2 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300 sm:text-sm"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            disabled={loading}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-md bg-gradient-to-r from-red-500 to-yellow-400 text-white font-medium hover:opacity-90 transition disabled:opacity-50"
+          >
+            {loading ? 'Creating account...' : 'Sign up'}
+          </button>
+
+          <p className="text-center text-sm text-white/80">
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              className="text-yellow-200 hover:text-yellow-100 font-medium"
             >
-              {loading ? 'Creating account...' : 'Sign up'}
-            </button>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <span className="text-gray-600">Already have an account? </span>
-            <Link to="/login" className="font-medium text-red-600 hover:text-red-500">
               Sign in
             </Link>
-          </div>
+          </p>
         </form>
       </div>
     </div>

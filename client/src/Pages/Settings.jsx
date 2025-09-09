@@ -4,9 +4,9 @@ import Navbar from '../Components/Navbar';
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [user, setUser] = useState({
-    name: 'Jane Smith',
-    username: 'janesmith',
-    email: 'jane@example.com',
+    name: 'Bamuna B',
+    username: 'bamunab',
+    email: 'bamuna@example.com',
     bio: 'Community activist passionate about improving our neighborhood',
     isPrivate: false,
     notifications: true,
